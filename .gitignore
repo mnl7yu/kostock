@@ -1,0 +1,25 @@
+# 환경변수 (절대 커밋 금지)
+.env
+
+# 캐시
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# 가상환경
+.venv/
+venv/
+
+# 로그
+logs/
+
+# 대용량 바이너리
+reports/*.png
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

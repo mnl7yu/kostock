@@ -1,0 +1,14 @@
+{
+  "stocks": [
+    {"ticker": "005930", "name": "삼성전자",        "market": "KOSPI",  "note": "반도체 대장주"},
+    {"ticker": "000660", "name": "SK하이닉스",       "market": "KOSPI",  "note": "HBM 수혜주"},
+    {"ticker": "035420", "name": "NAVER",            "market": "KOSPI",  "note": "AI/플랫폼"},
+    {"ticker": "051910", "name": "LG화학",           "market": "KOSPI",  "note": "배터리소재"},
+    {"ticker": "006400", "name": "삼성SDI",          "market": "KOSPI",  "note": "전기차 배터리"},
+    {"ticker": "035720", "name": "카카오",           "market": "KOSPI",  "note": "플랫폼"},
+    {"ticker": "207940", "name": "삼성바이오로직스", "market": "KOSPI",  "note": "바이오"},
+    {"ticker": "068270", "name": "셀트리온",         "market": "KOSPI",  "note": "바이오시밀러"},
+    {"ticker": "247540", "name": "에코프로비엠",     "market": "KOSDAQ", "note": "양극재"},
+    {"ticker": "086520", "name": "에코프로",         "market": "KOSDAQ", "note": "배터리소재 지주"}
+  ]
+}
