@@ -67,7 +67,6 @@ def send_text(text: str) -> None:
             json={
                 "chat_id": config.TELEGRAM_CHAT_ID,
                 "text": body,
-                "parse_mode": "Markdown",
                 "disable_web_page_preview": True,
             },
         )
@@ -90,10 +89,5 @@ def send_document(file_path: Path, caption: str = "") -> None:
 
 
 def send_report(report_text: str, report_file: Path) -> None:
-    """
-    1) 리포트 전문 텍스트 메시지 전송
-    2) .md 파일 문서 첨부 전송
-    """
+    """리포트 전문 텍스트 메시지 전송 (파일 첨부 없이 순수 텍스트)."""
     send_text(report_text)
-    time.sleep(1)
-    send_document(report_file, caption=f"📎 {report_file.name}")
