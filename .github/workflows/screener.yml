@@ -1,0 +1,80 @@
+name: Korean Stock Screener
+
+on:
+  schedule:
+    # 08:30 KST weekdays = 23:30 UTC Sunday-Thursday
+    - cron: "30 23 * * 0-4"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Screening mode"
+        required: false
+        default: "moderate"
+        type: choice
+        options: [strict, moderate, loose]
+      min_marcap:
+        description: "Min market cap (억원)"
+        required: false
+        default: "500"
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 yfinance lxml python-dotenv anthropic pandas finance-datareader -q
+
+      - name: Skip check (weekend / already ran)
+        id: skip
+        run: |
+          python - <<'EOF'
+          from datetime import datetime, timezone, timedelta
+          import os, sys
+          KST = timezone(timedelta(hours=9))
+          n = datetime.now(KST)
+          if n.weekday() >= 5:
+              print("skip=true")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("skip=true\n")
+              sys.exit(0)
+          d = n.strftime("%Y%m%d")
+          if os.path.exists(f"reports/{d}_screening.csv"):
+              print("skip=true")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("skip=true\n")
+          else:
+              print(f"go {d}")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("skip=false\n")
+          EOF
+
+      - name: Run screener
+        if: steps.skip.outputs.skip != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MODE=${{ github.event.inputs.mode || 'moderate' }}
+          MARCAP=${{ github.event.inputs.min_marcap || '500' }}
+          python run_screener.py --mode "$MODE" --min-marcap "$MARCAP"
+
+      - name: Commit and push reports
+        if: steps.skip.outputs.skip != 'true'
+        run: |
+          git config user.email bot@kostock.ai
+          git config user.name Bot
+          git add reports/
+          git diff --cached --quiet || git commit -m "auto screening $(date -u +'%Y%m%d')"
+          git push origin main
