@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -246,8 +246,9 @@ def load_reports(rtype):
 # 앱 레이아웃
 # ══════════════════════════════════════════════════════════════════════════════
 
-# 헤더
-now = datetime.now()
+# 헤더 (KST 기준)
+KST = timezone(timedelta(hours=9))
+now = datetime.now(KST)
 is_open = now.weekday() < 5 and 900 <= now.hour * 100 + now.minute <= 1530
 badge_color = "#3fb950" if is_open else "#6e7681"
 badge_txt   = "장 중" if is_open else "장 마감"
