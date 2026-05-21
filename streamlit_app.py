@@ -232,7 +232,7 @@ def load_watchlist():
     return out
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=300)
 def load_reports(rtype):
     out = []
     for p in sorted(REPORTS_DIR.glob(f"*_{rtype}.md"), reverse=True)[:10]:
