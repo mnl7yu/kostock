@@ -18,6 +18,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          pip install requests -q
           python3 - <<'EOF'
           import os, requests, glob, re
 
