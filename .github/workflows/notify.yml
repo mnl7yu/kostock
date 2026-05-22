@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: 최신 리포트 전송
         env:
@@ -20,34 +22,47 @@ jobs:
         run: |
           pip install requests -q
           python3 - <<'EOF'
-          import os, requests, glob, re
+          import os, requests, subprocess
 
-          BOT   = os.environ["BOT_TOKEN"]
-          CHAT  = os.environ["CHAT_ID"]
-          URL   = f"https://api.telegram.org/bot{BOT}/sendMessage"
+          BOT  = os.environ.get("BOT_TOKEN", "")
+          CHAT = os.environ.get("CHAT_ID", "")
+          URL  = f"https://api.telegram.org/bot{BOT}/sendMessage"
 
-          def send(text):
-              for i in range(0, len(text), 4000):
-                  requests.post(URL, json={
-                      "chat_id": CHAT,
-                      "text": text[i:i+4000],
-                      "disable_web_page_preview": True
-                  }, timeout=15)
+          print(f"BOT 길이: {len(BOT)}, CHAT: {CHAT}")
 
-          # 변경된 파일 감지 (git diff)
-          import subprocess
+          if not BOT or not CHAT:
+              print("ERROR: 시크릿 없음")
+              exit(1)
+
+          # 변경된 md 파일 찾기
           result = subprocess.run(
               ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
               capture_output=True, text=True
           )
-          changed = result.stdout.strip().split("\n")
+          changed = [f for f in result.stdout.strip().split("\n")
+                     if f.startswith("reports/") and f.endswith(".md")]
+          print(f"변경된 파일: {changed}")
+
+          if not changed:
+              print("전송할 파일 없음")
+              exit(0)
+
+          def send(text):
+              sent = 0
+              for i in range(0, len(text), 4000):
+                  r = requests.post(URL, json={
+                      "chat_id": CHAT,
+                      "text": text[i:i+4000],
+                      "disable_web_page_preview": True
+                  }, timeout=15)
+                  print(f"  chunk {sent+1}: {r.status_code} ok={r.json().get('ok')} err={r.json().get('description','')}")
+                  sent += 1
 
           for path in changed:
-              if not path.startswith("reports/") or not path.endswith(".md"):
-                  continue
               if not os.path.exists(path):
+                  print(f"파일 없음: {path}")
                   continue
-              text = open(path).read()
-              print(f"전송: {path} ({len(text)}자)")
+              text = open(path).read().strip()
+              print(f"전송 시작: {path} ({len(text)}자)")
               send(text)
           EOF
