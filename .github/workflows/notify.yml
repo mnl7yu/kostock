@@ -15,12 +15,20 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: pip install
-        run: pip install requests -q
-
-      - name: 변경된 리포트 전송
+      - name: 시크릿 확인
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          echo "BOT 길이: ${#BOT_TOKEN}"
+          echo "CHAT: $CHAT_ID"
+          curl -s "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${CHAT_ID}&text=GitHub Actions 테스트 메시지" | cat
+
+      - name: 리포트 전송
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          pip install requests -q
           python3 send_notify.py
